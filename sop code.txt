@@ -1,0 +1,94 @@
+
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <DHT.h>
+#include<softwareSerial.h>
+#include<DFRobotDFPlayerMini.h>
+// LCD I2C address (confirm using I2C scanner: 0x27 or 0x3F)
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+// DHT11 Sensor Settings
+#define DHTPIN 2
+#define DHTTYPE DHT11
+DHT dht(DHTPIN, DHTTYPE);
+// Pins
+#define RELAY_PIN 8
+#define LED_DRY 10
+#define LED_WET 11
+#define SOIL_SENSOR A0
+SoftwareSerial myserial(10,11);
+DFRobotDFPlayerMini myDFPlayer;
+void setup() { 
+ Serial.begin(9600);  
+dht.begin();  
+lcd.begin(16, 2); 
+lcd.backlight();  
+pinMode(RELAY_PIN, OUTPUT);  
+pinMode(LED_DRY, OUTPUT);  
+pinMode(LED_WET, OUTPUT);  
+pinMode(SOIL_SENSOR, INPUT);  
+// Initial states  
+digitalWrite(RELAY_PIN, LOW);  
+digitalWrite(LED_DRY, LOW);  
+digitalWrite(LED_WET, LOW);
+dht.begin();
+  if(!myDFPlayer.begin(mySerial)){
+      serial.println(“DFPlayer Mini not found!” );
+      while(true);
+}
+  myDFplayer.volume(25)
+}
+void loop() {
+ float humidity = dht.readHumidity();  
+ float temperature = dht.readTemperature(); 
+ int moistureValue = analogRead(SOIL_SENSOR);
+ // Convert soil moisture to percentage  
+ int moisturePercent = map(moistureValue, 1023, 0, 0, 100);  // Dry = 1023, Wet = 0  
+// Check if DHT reading is valid  
+if (isnan(humidity) || isnan(temperature))
+ {  
+   Serial.println("Failed to read from DHT11"); 
+   lcd.clear();    lcd.setCursor(0, 0); 
+   lcd.print("Sensor Error");   
+  delay(2000); 
+   return;  
+   }  
+// Print to Serial Monitor  
+Serial.print("Humidity: ");  
+Serial.print(humidity);  
+Serial.print("%, Temp:
+Serial.print("%, Temp: ");  
+Serial.print(temperature);  
+Serial.print("C, Soil: ");  
+Serial.print(moisturePercent);  
+Serial.println("%");  
+//print to LCD
+lcd.clear(); 
+ lcd.setCursor(0, 0); 
+ lcd.print("T:"); 
+ lcd.print(temperature); 
+ lcd.print((char)223);  
+ lcd.print("C H:"); 
+ lcd.print(humidity); 
+ lcd.print("%");  
+ lcd.setCursor(0, 1);  
+ lcd.print("Moisture:"); 
+ lcd.print(moisturePercent);  
+ lcd.print("%"); 
+ // Relay Control Based on Humidity  
+if (humidity < 20 || moisturePercent < 30)
+ {
+    digitalWrite(RELAY_PIN, HIGH);  // Turn ON motor    
+    digitalWrite(LED_DRY, HIGH);    // DRY condition    
+    digitalWrite(LED_WET, LOW);
+ myDFPlayer.play(1)
+   delay(1000);
+ myDFPlayer.play(2)
+ } else if (humidity > 85 || moisturePercent > 70) {    
+   digitalWrite(RELAY_PIN, LOW);   // Turn OFF motor 
+   digitalWrite(LED_DRY, LOW); 
+   digitalWrite(LED_WET, HIGH);    // WET condition 
+ } else {    // Mid zone: turn everything off          
+ digitalWrite(RELAY_PIN, LOW);   
+ digitalWrite(LED_DRY, LOW);   
+ digitalWrite(LED_WET, LOW);  }  
+delay(2000); }
